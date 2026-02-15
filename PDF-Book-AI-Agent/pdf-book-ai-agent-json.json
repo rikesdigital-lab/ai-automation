@@ -1,0 +1,1806 @@
+{
+    "name": "PDF Book AI Agent",
+    "nodes": [
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "df2e2836-1965-45f5-a741-28b2dfa93460",
+                            "leftValue": "={{ $json.message.document }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "object",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.20000000000000017763568394002504646778106689453125,
+            "position": [
+                288,
+                144
+            ],
+            "id": "70db0985-6cf2-486f-a1ab-87c121cb7bc3",
+            "name": "File Check"
+        },
+        {
+            "parameters": {
+                "options": []
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                64,
+                1056
+            ],
+            "id": "d11c8e1e-be21-4248-b31e-ca3c93ea3db3",
+            "name": "Loop Over Items"
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "output.chapters",
+                "options": []
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                992,
+                480
+            ],
+            "id": "fdd4c698-8f47-4a7b-8947-ef86f59f944c",
+            "name": "Split Out"
+        },
+        {
+            "parameters": {
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n<link href=\"https:\/\/fonts.googleapis.com\/css2?family=Merriweather:wght@300;700&family=Open+Sans:wght@400;600&display=swap\" rel=\"stylesheet\">\n<style>\n    \/* GLOBAL SETTINGS *\/\n    body {\n        margin: 0;\n        padding: 0;\n        background-color: #fdfbf7;\n        font-family: 'Open Sans', sans-serif;\n        -webkit-print-color-adjust: exact;\n    }\n\n    \/* EACH CHAPTER IS A PAGE *\/\n    .page-container {\n        width: 100%;\n        height: 100vh; \/* Force full height *\/\n        padding: 40px;\n        box-sizing: border-box;\n        position: relative;\n        page-break-after: always; \/* THE MAGIC SAUCE: Forces new page for next item *\/\n        break-after: page;\n    }\n\n    \/* REMOVE BREAK ON LAST PAGE (Optional cleanup) *\/\n    .page-container:last-child {\n        page-break-after: auto;\n        break-after: auto;\n    }\n\n    \/* HEADER *\/\n    .header {\n        border-bottom: 2px solid #2c3e50;\n        padding-bottom: 20px;\n        margin-bottom: 30px;\n        display: flex;\n        justify-content: space-between;\n        align-items: flex-end;\n    }\n\n    h1 {\n        font-family: 'Merriweather', serif;\n        font-size: 32px;\n        color: #2c3e50;\n        margin: 0;\n        line-height: 1.2;\n        width: 80%;\n    }\n\n    .date-badge {\n        font-family: 'Merriweather', serif;\n        font-size: 34px;\n        font-weight: 700;\n        color: #c0392b;\n        opacity: 0.9;\n    }\n\n    \/* IMAGE BOX *\/\n    .visual-asset {\n        width: 100%;\n        height: 400px;\n        background-color: #eee;\n        border-radius: 4px;\n        overflow: hidden;\n        box-shadow: 0 10px 20px rgba(0,0,0,0.15);\n        margin-bottom: 35px;\n        display: flex;\n        justify-content: center;\n        align-items: center;\n        border: 1px solid #ddd;\n    }\n\n    .visual-asset img {\n        width: 100%;\n        height: 100%;\n        object-fit: cover;\n    }\n\n    \/* TEXT *\/\n    .content-block {\n        columns: 1;\n    }\n\n    p {\n        font-size: 16px;\n        line-height: 1.8;\n        color: #34495e;\n        margin-top: 0;\n        text-align: justify;\n    }\n\n    p::first-letter {\n        font-family: 'Merriweather', serif;\n        font-size: 3.5em;\n        float: left;\n        margin-top: -15px;\n        margin-right: 10px;\n        color: #2c3e50;\n    }\n\n    \/* FOOTER *\/\n    .footer {\n        position: absolute;\n        bottom: 40px;\n        right: 40px;\n        font-size: 10px;\n        color: #95a5a6;\n        font-family: monospace;\n    }\n<\/style>\n<\/head>\n<body>\n\n{{ $json.data.map(item => `\n\n    <div class=\"page-container\">\n        <div class=\"header\">\n            <h1>${item.title}<\/h1>\n            <div class=\"date-badge\">${item.date}<\/div>\n        <\/div>\n\n        <div class=\"visual-asset\">\n            <img src=\"${item.public_url}\" alt=\"Historical Image\" \/>\n        <\/div>\n\n        <div class=\"content-block\">\n            <p>${item.content}<\/p>\n        <\/div>\n\n        <div class=\"footer\">\n            ID: ${item.id} | NANO BANANA HISTORY ENGINE\n        <\/div>\n    <\/div>\n\n`).join('') }}\n\n<\/body>\n<\/html>"
+            },
+            "type": "n8n-nodes-base.html",
+            "typeVersion": 1.1999999999999999555910790149937383830547332763671875,
+            "position": [
+                240,
+                1408
+            ],
+            "id": "61342431-3dcf-4f09-a1f4-20ca7a9aa647",
+            "name": "HTML"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.message.text }}",
+                "hasOutputParser": true,
+                "options": {
+                    "systemMessage": "=You are a Topic Classifier for an educational content engine.\nYour job is to filter user requests and ensure they are related to historical events, biographies, or educational concepts.\n\n### LOGIC:\n1. Analyze if the input is a valid topic for a visual history\/concept briefing.\n2. IF VALID:\n   - Set \"is_valid\" to true.\n   - Set \"refined_topic\" to a professional version of the title (e.g. \"napoleon\" -> \"The Military Campaigns of Napoleon\").\n   - Set \"reply_to_user\" to empty string.\n\n3. IF INVALID (Casual chat, coding requests, math, nonsense):\n   - Set \"is_valid\" to false.\n   - Set \"refined_topic\" to emptry string.\n   - Set \"reply_to_user\" to a polite, short response explaining that you only generate visual briefings for history or educational concepts. Acknowledge what they asked for but decline it.\n\n### OUTPUT FORMAT:\nReturn ONLY a JSON object.\n{\n  \"is_valid\": boolean,\n  \"refined_topic\": string or null,\n  \"reply_to_user\": string or null\n}"
+                }
+            },
+            "type": "@n8n\/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                640,
+                64
+            ],
+            "id": "125468be-c929-43dc-b173-ff5335aa6dac",
+            "name": "AI Agent1"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "57c95d74-8a9c-4ca0-8734-d447f64ca53b",
+                            "leftValue": "={{ $json.output.is_valid }}",
+                            "rightValue": true,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.20000000000000017763568394002504646778106689453125,
+            "position": [
+                960,
+                64
+            ],
+            "id": "60a0b9cc-4989-466d-9cea-d8edce122bc5",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "jsonSchemaExample": "{ \n  \"is_valid\": true,\n  \"refined_topic\": \"The Military Campaigns of Napoleon Bonaparte\",\n  \"reply_to_user\": \"\"\n}"
+            },
+            "type": "@n8n\/n8n-nodes-langchain.outputParserStructured",
+            "typeVersion": 1.3000000000000000444089209850062616169452667236328125,
+            "position": [
+                848,
+                240
+            ],
+            "id": "09c42f89-80a1-400e-be59-37fbaaab8617",
+            "name": "Structured Output Parser1"
+        },
+        {
+            "parameters": {
+                "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+                "text": "={{ $json.output.reply_to_user }}",
+                "additionalFields": {
+                    "appendAttribution": false
+                }
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.1999999999999999555910790149937383830547332763671875,
+            "position": [
+                1056,
+                224
+            ],
+            "id": "7fb6a4d5-167b-45fc-9aa7-a04a9d89e369",
+            "name": "Send a text message",
+            "webhookId": "6559df3f-ba60-4dd5-83ca-9903df57b812",
+            "credentials": {
+                "telegramApi": {
+                    "id": "uSX4Fzu9gdxI2leJ",
+                    "name": "LeadGenBot"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E",
+                    "mode": "list",
+                    "cachedResultName": "[WL] Digital Asset PDFs",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1402725153,
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit#gid=1402725153"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.id }}",
+                        "Parent ID": "={{ $('Create Job').first().json.ID }}",
+                        "Type": "Asset Creation",
+                        "Status": "Queued",
+                        "Prompt": "={{ $json.image_prompt }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Parent ID",
+                            "displayName": "Parent ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Concept",
+                            "displayName": "Concept",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Type",
+                            "displayName": "Type",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Status",
+                            "displayName": "Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prompt",
+                            "displayName": "Prompt",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Public Link",
+                            "displayName": "Public Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "PDF Link",
+                            "displayName": "PDF Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.70000000000000017763568394002504646778106689453125,
+            "position": [
+                208,
+                768
+            ],
+            "id": "585c1216-aac3-49ce-80ae-83a7ac19781d",
+            "name": "Append row in sheet2",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "BFARZPl4ZzZKfJjo",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "mode": "combine",
+                "fieldsToMatchString": "id",
+                "joinMode": "enrichInput2",
+                "options": []
+            },
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3.20000000000000017763568394002504646778106689453125,
+            "position": [
+                368,
+                864
+            ],
+            "id": "d0fc1162-b06b-4b96-af51-966eaa571ea6",
+            "name": "Merge"
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E",
+                    "mode": "list",
+                    "cachedResultName": "[WL] Digital Asset PDFs",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1402725153,
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit#gid=1402725153"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.id }}",
+                        "Status": "Generating..."
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Parent ID",
+                            "displayName": "Parent ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Concept",
+                            "displayName": "Concept",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Type",
+                            "displayName": "Type",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Status",
+                            "displayName": "Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prompt",
+                            "displayName": "Prompt",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Public Link",
+                            "displayName": "Public Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "PDF Link",
+                            "displayName": "PDF Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.70000000000000017763568394002504646778106689453125,
+            "position": [
+                256,
+                1072
+            ],
+            "id": "69ce7dbc-1f0a-473c-a484-5ab303b9f15b",
+            "name": "Update row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "BFARZPl4ZzZKfJjo",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "action": "generate",
+                "dataPropertyName": "id"
+            },
+            "type": "n8n-nodes-base.crypto",
+            "typeVersion": 1,
+            "position": [
+                32,
+                880
+            ],
+            "id": "c3f6d675-c4ac-451b-a9a1-1da787af05cc",
+            "name": "Crypto"
+        },
+        {
+            "parameters": {
+                "action": "generate",
+                "dataPropertyName": "id"
+            },
+            "type": "n8n-nodes-base.crypto",
+            "typeVersion": 1,
+            "position": [
+                80,
+                496
+            ],
+            "id": "dba8bf03-216c-4c62-968e-b299639c1a37",
+            "name": "Crypto1"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E",
+                    "mode": "list",
+                    "cachedResultName": "[WL] Digital Asset PDFs",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1402725153,
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit#gid=1402725153"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.id }}",
+                        "Concept": "={{ $json.output.refined_topic }}",
+                        "Type": "Briefing Job",
+                        "Status": "Generating..."
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Parent ID",
+                            "displayName": "Parent ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Concept",
+                            "displayName": "Concept",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Type",
+                            "displayName": "Type",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Status",
+                            "displayName": "Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prompt",
+                            "displayName": "Prompt",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Public Link",
+                            "displayName": "Public Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "PDF Link",
+                            "displayName": "PDF Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.70000000000000017763568394002504646778106689453125,
+            "position": [
+                288,
+                496
+            ],
+            "id": "0a61919a-62ea-4df7-9af2-0cb8cc320768",
+            "name": "Create Job",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "BFARZPl4ZzZKfJjo",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E",
+                    "mode": "list",
+                    "cachedResultName": "[WL] Digital Asset PDFs",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1402725153,
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit#gid=1402725153"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $('Loop Over Items').item.json.id }}",
+                        "Status": "Completed",
+                        "Public Link": "={{ $json.secure_url }}"
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Parent ID",
+                            "displayName": "Parent ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Concept",
+                            "displayName": "Concept",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Type",
+                            "displayName": "Type",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Status",
+                            "displayName": "Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prompt",
+                            "displayName": "Prompt",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Public Link",
+                            "displayName": "Public Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "PDF Link",
+                            "displayName": "PDF Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.70000000000000017763568394002504646778106689453125,
+            "position": [
+                816,
+                1072
+            ],
+            "id": "1ae84969-d3fc-4714-8e02-85d5bccec832",
+            "name": "Update row in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "BFARZPl4ZzZKfJjo",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "aggregate": "aggregateAllItemData",
+                "options": []
+            },
+            "type": "n8n-nodes-base.aggregate",
+            "typeVersion": 1,
+            "position": [
+                80,
+                1408
+            ],
+            "id": "e5e154f7-da6e-49cb-84e7-7360a93008b4",
+            "name": "Aggregate"
+        },
+        {
+            "parameters": {
+                "updates": [
+                    "message"
+                ],
+                "additionalFields": []
+            },
+            "type": "n8n-nodes-base.telegramTrigger",
+            "typeVersion": 1.1999999999999999555910790149937383830547332763671875,
+            "position": [
+                80,
+                144
+            ],
+            "id": "8b0c3864-72da-4a66-a9f7-521a6c7a1074",
+            "name": "Telegram Trigger",
+            "webhookId": "fffb864a-c023-4bc6-91b3-3273882af0a7",
+            "credentials": {
+                "telegramApi": {
+                    "id": "uSX4Fzu9gdxI2leJ",
+                    "name": "LeadGenBot"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "58af3a52-33cc-4b36-b94b-a95e00f96142",
+                            "name": "id",
+                            "value": "={{ $json.ID }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "2c1967cf-8c7a-4bc5-a0db-e1bd1b0c1238",
+                            "name": "title",
+                            "value": "={{ $('Loop Over Items').item.json.title }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "c0ab7a79-923c-4e0b-ab4b-40de31d44dcb",
+                            "name": "date",
+                            "value": "={{ $('Loop Over Items').item.json.date }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "81234613-1bcc-4628-9a2d-482e58a9418c",
+                            "name": "content",
+                            "value": "={{ $('Loop Over Items').item.json.content }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "bd93d63e-256c-438e-952c-bc87231fda42",
+                            "name": "image_prompt",
+                            "value": "={{ $('Loop Over Items').item.json.image_prompt }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "b0e2568f-8b8d-44c9-8e4b-21c1458d6066",
+                            "name": "public_url",
+                            "value": "={{ $json['Public Link'] }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.399999999999999911182158029987476766109466552734375,
+            "position": [
+                1008,
+                1072
+            ],
+            "id": "956e8831-0388-413f-8d5f-66f69389eff8",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E",
+                    "mode": "list",
+                    "cachedResultName": "[WL] Digital Asset PDFs",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1402725153,
+                    "mode": "list",
+                    "cachedResultName": "Sheet1",
+                    "cachedResultUrl": "https:\/\/docs.google.com\/spreadsheets\/d\/1DoalR9fh3oGZoxGSlZaTxPy9tJX4SLp4HJxUfdIXO-E\/edit#gid=1402725153"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $('Create Job').first().json.ID }}",
+                        "Status": "Completed",
+                        "PDF Link": "={{ $json.webViewLink }}"
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Parent ID",
+                            "displayName": "Parent ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Concept",
+                            "displayName": "Concept",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Type",
+                            "displayName": "Type",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Status",
+                            "displayName": "Status",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prompt",
+                            "displayName": "Prompt",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "Public Link",
+                            "displayName": "Public Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": true
+                        },
+                        {
+                            "id": "PDF Link",
+                            "displayName": "PDF Link",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "row_number",
+                            "displayName": "row_number",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "number",
+                            "canBeUsedToMatch": true,
+                            "readOnly": true,
+                            "removed": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.70000000000000017763568394002504646778106689453125,
+            "position": [
+                1072,
+                1408
+            ],
+            "id": "d3319d5f-07dc-41a9-a706-69a4e8c427e0",
+            "name": "Update row in sheet2",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "BFARZPl4ZzZKfJjo",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "## Input + Validation \n",
+                "height": 368,
+                "width": 1232,
+                "color": 4
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                0,
+                0
+            ],
+            "typeVersion": 1,
+            "id": "04227115-618c-48ad-8b29-7b01c6b0cae6",
+            "name": "Sticky Note"
+        },
+        {
+            "parameters": {
+                "content": "## Generate Text Content & Image Prompts \n",
+                "height": 304,
+                "width": 1232,
+                "color": 6
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                0,
+                384
+            ],
+            "typeVersion": 1,
+            "id": "c14b0e52-6335-4a33-8220-0bb1dbd9bbe5",
+            "name": "Sticky Note1"
+        },
+        {
+            "parameters": {
+                "content": "## Generate Images (Loop)",
+                "height": 608,
+                "width": 1248,
+                "color": 5
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                -16,
+                704
+            ],
+            "typeVersion": 1,
+            "id": "c449961b-5df1-4f05-8f56-b068478e01e1",
+            "name": "Sticky Note2"
+        },
+        {
+            "parameters": {
+                "content": "## Generate PDF & Complete",
+                "height": 256,
+                "width": 1248,
+                "color": 3
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                -16,
+                1328
+            ],
+            "typeVersion": 1,
+            "id": "a1d7c6c6-a3d4-48f7-9aa6-3c1e27428632",
+            "name": "Sticky Note3"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.Concept }}",
+                "hasOutputParser": true,
+                "options": {
+                    "systemMessage": "=You are an expert Historian and Visual Storyteller. Your goal is to take a user's request about a historical event and transform it into a structured, up to 20-part visual narrative.\n\n### YOUR PROCESS:\n1.  **RESEARCH:** Use your search tools to verify the exact dates, key figures, locations, and visual details of the user's topic. Do not hallucinate dates.\n2.  **STRUCTURE:** Break the topic into between 5 and 20 chronological chapters (each chapter equals one PDF page). Use as many chapters as needed up to a maximum of 20, based on how complex the topic is.\n3.  **DRAFTING:** For each chapter, generate the following fields:\n    * **Title:** A short, punchy title for the moment.\n    * **Date:** The specific year or date of the event.\n    * **Content:** A deeply engaging, educational paragraph (approx. 3-4 sentences) explaining what happened and why it matters.\n    * **Image_Prompt:** A highly detailed prompt for an AI Image Generator (Nano Banana Pro).\n\n### IMAGE PROMPT GUIDELINES:\n* Focus on the *subject matter* (people, actions, setting, lighting).\n* Do NOT describe the \"art style\" (e.g., do not say \"vintage style\" or \"watercolor\"), as the style will be handled by an external Reference Image.\n* **CRITICAL:** Nano Banana Pro can render text. In your prompt, explicitly state what text should be visible in the scene, usually the date or a location sign. Format this as: 'The text \"[DATE]\" is clearly visible in the composition.'\n\n### OUTPUT FORMAT:\nYou must return **ONLY** a valid JSON array containing upto 20 objects. Do not include markdown formatting (like ```json), explanations, or conversational filler."
+                }
+            },
+            "type": "@n8n\/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                576,
+                432
+            ],
+            "id": "3fb47dfc-9d60-4119-b78a-78f53dd9588b",
+            "name": "AI Agent",
+            "retryOnFail": false
+        },
+        {
+            "parameters": {
+                "jsonSchemaExample": "{\n\t\"chapters\": [\n      {\n        \"chapter_id\": 1,\n    \"title\": \"The Spark\",\n    \"date\": \"1969\",\n    \"content\": \"The detailed educational paragraph...\",\n    \"image_prompt\": \"A wide shot of the Saturn V rocket on the launchpad at sunrise. Steam is rising from the engines. The text '1969' is clearly visible on a launch tower sign.\"\n      }\n    ]\n}"
+            },
+            "type": "@n8n\/n8n-nodes-langchain.outputParserStructured",
+            "typeVersion": 1.3000000000000000444089209850062616169452667236328125,
+            "position": [
+                816,
+                592
+            ],
+            "id": "b8b65cf9-63d3-4008-9e30-6f550586462b",
+            "name": "Structured Output Parser"
+        },
+        {
+            "parameters": {
+                "chatId": "={{ $json.message.chat.id }}",
+                "text": "Files not supported",
+                "additionalFields": []
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.1999999999999999555910790149937383830547332763671875,
+            "position": [
+                448,
+                32
+            ],
+            "id": "c89f15dd-52a3-4df9-b4c3-a8ecd33f3278",
+            "name": "Send a text message1",
+            "webhookId": "3574cdaa-68ba-411a-aa35-93fa4e4ebfa8",
+            "credentials": {
+                "telegramApi": {
+                    "id": "uSX4Fzu9gdxI2leJ",
+                    "name": "LeadGenBot"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "value": "gpt-5.1",
+                    "mode": "list",
+                    "cachedResultName": "gpt-5.1"
+                },
+                "builtInTools": {
+                    "webSearch": {
+                        "searchContextSize": "medium"
+                    }
+                },
+                "options": []
+            },
+            "type": "@n8n\/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.3000000000000000444089209850062616169452667236328125,
+            "position": [
+                480,
+                592
+            ],
+            "id": "ef513b12-f278-425d-9397-209999f48c41",
+            "name": "OpenAI Chat Model",
+            "credentials": {
+                "openAiApi": {
+                    "id": "bfZD7tWaxPGpOAH8",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "amount": 30
+            },
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.100000000000000088817841970012523233890533447265625,
+            "position": [
+                576,
+                832
+            ],
+            "id": "1a543559-6b8a-4840-9942-db2a8cc5d62d",
+            "name": "Wait",
+            "webhookId": "bb3d2d09-2041-4a66-84c3-40d187b9caa0"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "9878c372-e014-47da-9d1a-805d77610ec4",
+                                        "leftValue": "={{ $json.data.state }}",
+                                        "rightValue": "fail",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "fail"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "=generating waiting queuing",
+                                        "rightValue": "={{ $json.data.state }}",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "contains"
+                                        },
+                                        "id": "e4482a59-8772-48f2-8329-508bff7c8144"
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "generating"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "f413c978-cd36-426d-9e7b-3e7c77e654e7",
+                                        "leftValue": "={{ $json.data.state }}",
+                                        "rightValue": "success",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "success"
+                        }
+                    ]
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.29999999999999982236431605997495353221893310546875,
+            "position": [
+                928,
+                816
+            ],
+            "id": "b789054f-5c17-4e93-94b5-be789338b9ea",
+            "name": "Switch"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https:\/\/api.kie.ai\/api\/v1\/jobs\/createTask",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer <token>"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"model\": \"nano-banana-pro\",\n  \"input\": {\n    \"prompt\": {{ JSON.stringify($('Loop Over Items').item.json.image_prompt) }},\n    \"aspect_ratio\": \"16:9\",\n    \"resolution\": \"1K\",\n    \"output_format\": \"png\"\n  }\n}",
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.29999999999999982236431605997495353221893310546875,
+            "position": [
+                432,
+                1072
+            ],
+            "id": "8151f796-41f8-421f-b123-e4f8bcec1968",
+            "name": "nano-banana-pro"
+        },
+        {
+            "parameters": {
+                "url": "https:\/\/api.kie.ai\/api\/v1\/jobs\/recordInfo",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "taskId",
+                            "value": "={{ $json.data.taskId }}"
+                        }
+                    ]
+                },
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer <token>"
+                        }
+                    ]
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.20000000000000017763568394002504646778106689453125,
+            "position": [
+                752,
+                832
+            ],
+            "id": "e4fc97bb-1625-4259-b624-818b62740498",
+            "name": "nano-banana-pro-result"
+        },
+        {
+            "parameters": {
+                "url": "={{ JSON.parse($json.data.resultJson).resultUrls[0] }}",
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.29999999999999982236431605997495353221893310546875,
+            "position": [
+                1088,
+                832
+            ],
+            "id": "9ad74ac0-25de-44f9-b460-42acf888d4cc",
+            "name": "download-image"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https:\/\/api.cloudinary.com\/v1_1\/<YOUR_CLOUD_NAME>\/image\/upload",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "upload_preset",
+                            "value": "YOUR_PRESET_NAME"
+                        },
+                        {
+                            "name": "folder",
+                            "value": "YOUR_FOLDER_NAME"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "contentType": "multipart-form-data",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "parameterType": "formBinaryData",
+                            "name": "=file",
+                            "inputDataFieldName": "=data"
+                        }
+                    ]
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.20000000000000017763568394002504646778106689453125,
+            "position": [
+                640,
+                1072
+            ],
+            "id": "bdcdd2d5-af03-49d1-bca6-57a0086fe72a",
+            "name": "Upload Photo"
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-4.1-mini"
+                },
+                "builtInTools": [],
+                "options": []
+            },
+            "type": "@n8n\/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.3000000000000000444089209850062616169452667236328125,
+            "position": [
+                560,
+                256
+            ],
+            "id": "4d75a763-1b5f-4e98-9c0d-f18d2f261835",
+            "name": "OpenAI Chat Model1",
+            "credentials": {
+                "openAiApi": {
+                    "id": "bfZD7tWaxPGpOAH8",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.download_url }}",
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.29999999999999982236431605997495353221893310546875,
+            "position": [
+                640,
+                1408
+            ],
+            "id": "71f07196-4a25-4992-a87c-249da9a8e15e",
+            "name": "Download PDF"
+        },
+        {
+            "parameters": {
+                "name": "={{ $('Create Job').first().json.Concept }}-{{ $('Create Job').first().json.ID }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "root",
+                    "mode": "list",
+                    "cachedResultName": "\/ (Root folder)",
+                    "cachedResultUrl": "https:\/\/drive.google.com\/drive"
+                },
+                "options": []
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                864,
+                1408
+            ],
+            "id": "4cd65bfd-934a-4b66-902f-7ac27dd1ce1e",
+            "name": "Upload PDF",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "bavUSxFi1gmGg8sg",
+                    "name": "Google Drive account RWL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https:\/\/rest-us.apitemplate.io\/v2\/create-pdf-from-html",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "X-API-KEY",
+                            "value": "<token>"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"body\": \"{{ $json.html.replace(\/\"\/g, '\\\"').replace(\/n\/g, '') }}\",\n  \"data\": {\n    \"name\": \"{{ $('Create Job').first().json.Concept }}\"\n  },\n  \"settings\": {\n    \"paper_size\": \"A4\",\n    \"orientation\": \"1\",\n    \"header_font_size\": \"9px\",\n    \"margin_top\": \"40\",\n    \"margin_right\": \"10\",\n    \"margin_bottom\": \"40\",\n    \"margin_left\": \"10\",\n    \"print_background\": \"1\",\n    \"displayHeaderFooter\": true\n  }\n}",
+                "options": []
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.29999999999999982236431605997495353221893310546875,
+            "position": [
+                480,
+                1408
+            ],
+            "id": "ac62d8b5-da35-42d6-b5e6-ddc4669a4d1b",
+            "name": "HTML to PDF"
+        }
+    ],
+    "pinData": [],
+    "connections": {
+        "File Check": {
+            "main": [
+                [
+                    {
+                        "node": "Send a text message1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Over Items": {
+            "main": [
+                [
+                    {
+                        "node": "Aggregate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Update row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Out": {
+            "main": [
+                [
+                    {
+                        "node": "Crypto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent1": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Structured Output Parser1": {
+            "ai_outputParser": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_outputParser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Crypto1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Send a text message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Append row in sheet2": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update row in sheet": {
+            "main": [
+                [
+                    {
+                        "node": "nano-banana-pro",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crypto": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet2",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Crypto1": {
+            "main": [
+                [
+                    {
+                        "node": "Create Job",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Job": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update row in sheet1": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Aggregate": {
+            "main": [
+                [
+                    {
+                        "node": "HTML",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Telegram Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "File Check",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Edit Fields": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTML": {
+            "main": [
+                [
+                    {
+                        "node": "HTML to PDF",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Split Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Structured Output Parser": {
+            "ai_outputParser": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_outputParser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wait": {
+            "main": [
+                [
+                    {
+                        "node": "nano-banana-pro-result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Switch": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "Wait",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "download-image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "nano-banana-pro": {
+            "main": [
+                [
+                    {
+                        "node": "Wait",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "nano-banana-pro-result": {
+            "main": [
+                [
+                    {
+                        "node": "Switch",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload Photo": {
+            "main": [
+                [
+                    {
+                        "node": "Update row in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "download-image": {
+            "main": [
+                [
+                    {
+                        "node": "Upload Photo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model1": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download PDF": {
+            "main": [
+                [
+                    {
+                        "node": "Upload PDF",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload PDF": {
+            "main": [
+                [
+                    {
+                        "node": "Update row in sheet2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTML to PDF": {
+            "main": [
+                [
+                    {
+                        "node": "Download PDF",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "b9afafec-7408-4280-8d48-412dd0bf2ead",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "0b008bd86df5902c8c20987844e8ef7a6cf9a5639f4abd7f8a22764455c02c65"
+    },
+    "id": "DhkWAY4lG3KN6tfG",
+    "tags": []
+}
